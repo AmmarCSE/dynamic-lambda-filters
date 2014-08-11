@@ -12,27 +12,40 @@ namespace LambdaFilters
     public class Class1
     {
         private TAS_DevEntities dbContext = ContextHelper.GetContext();
-        public void Listtesting123<TMainSet, TFilterSet>() 
+        public void Listtesting123<TMainSet, TFilterSet>() where TMainSet : class where TFilterSet : class 
         {
-            GetLookupSource<Allotment, Hotel, int>(dbContext.Allotments,  dbContext.Hotels);
-            IQueryable<Allotment> queryableData = dbContext.Allotments.AsQueryable<Allotment>();
+            IQueryable<TMainSet> queryableData = dbContext.Set<TMainSet>().AsQueryable<TMainSet>();
 
             // Compose the expression tree that represents the parameter to the predicate.
-            ParameterExpression pe = Expression.Parameter(typeof(Allotment), "allotment");
+            ParameterExpression s = Expression.Parameter(queryableData.ElementType, "s");
+            Expression<Func<TMainSet, int>> outerKeySelector =
+                Expression.Lambda<Func<TMainSet, int>>(Expression.PropertyOrField(s, "HotelID"), s);
 
-            // Create an expression tree that represents the expression 'company.ToLower() == "coho winery"'.
-            Expression left = Expression.Property(pe, typeof(Allotment).GetProperty("Deleted"));
-            Expression right = Expression.Constant(false);
-			
-            Expression e1 = Expression.Equal(left, right);
+            ParameterExpression l = Expression.Parameter(dbContext.Set<TFilterSet>().AsQueryable<TFilterSet>().ElementType, "l");
+            Expression<Func<TFilterSet, int>> innerKeySelector =
+                Expression.Lambda<Func<TFilterSet, int>>(Expression.PropertyOrField(l, "HotelID"), l);
 
-            MethodCallExpression whereCallExpression = Expression.Call(
-                typeof(Queryable),
-                "Where",
-                new Type[] { queryableData.ElementType },
-                queryableData.Expression,
-                Expression.Lambda<Func<Allotment, bool>>(e1, new ParameterExpression[] { pe }));
-            IQueryable<Allotment> results = queryableData.Provider.CreateQuery<Allotment>(whereCallExpression);
+            var resultSelector = Expression.Lambda<Func<TMainSet, TFilterSet, TFilterSet>>(l, s, l);
+            MethodCallExpression join =  Expression.Call (
+            typeof (Queryable),
+            "Join",
+            new Type[]
+            {
+                typeof (TMainSet),   // TOuter,
+                typeof (TFilterSet),   // TInner,
+                typeof (int),       // TKey,
+                typeof (TFilterSet)      // TResult
+            },
+            new Expression[]
+            {
+                Expression.PropertyOrField (Expression.Constant (dbContext), "Allotments"),
+                Expression.PropertyOrField (Expression.Constant (dbContext), "Hotels"),
+                outerKeySelector,
+                innerKeySelector,
+                resultSelector
+            });
+             var resutl = Expression.Lambda<Func<IQueryable<TFilterSet>>> (join).Compile()();
+            //IQueryable<TFilterSet> results = dbContext.TFilterSets.AsQueryable<TFilterSet>().Provider.CreateQuery<TFilterSet>(join);
 
             //var test = dbContext.Set<TMainSet>()
             //    .Where(a => a.Deleted == false && a.Active == true);
@@ -45,20 +58,41 @@ namespace LambdaFilters
                 //    , (a, h) => new { Hotel = h })
                 //.Distinct();
         }
-public  IQueryable<TLookup> GetLookupSource<T, TLookup, TKey>(IQueryable<T> source, IQueryable<TLookup> lookup){
-   ParameterExpression s = Expression.Parameter(source.ElementType, "s");
-   Expression<Func<T, TKey>> outerKeySelector = Expression.Lambda<Func<T, TKey>>(Expression.PropertyOrField(s, "HotelID"), s);
+        //public  IQueryable<TLookup> GetLookupSource<T, TLookup, TKey>(IQueryable<T> source
+        //    , IQueryable<TLookup> lookup)
+        //{
+        //    ParameterExpression s = Expression.Parameter(source.ElementType, "s");
+        //    Expression<Func<T, TKey>> outerKeySelector = 
+        //        Expression.Lambda<Func<T, TKey>>(Expression.PropertyOrField(s, "HotelID"), s);
 
-   ParameterExpression l = Expression.Parameter(lookup.ElementType, "l");
-   Expression<Func<TLookup, TKey>> innerKeySelector = Expression.Lambda<Func<TLookup, TKey>>(Expression.PropertyOrField(l, "HotelID"), l);
+        //    ParameterExpression l = Expression.Parameter(lookup.ElementType, "l");
+        //    Expression<Func<TLookup, TKey>> innerKeySelector = 
+        //        Expression.Lambda<Func<TLookup, TKey>>(Expression.PropertyOrField(l, "HotelID"), l);
 
-   var resultSelector = Expression.Lambda<Func<T, TLookup, TLookup>>(l, s, l);
+        //    var resultSelector = Expression.Lambda<Func<T, TLookup, TLookup>>(l, s, l);
 
-   MethodInfo joinMethod = typeof(Queryable).GetMethods(BindingFlags.Static | BindingFlags.Public).Where(m => m.Name == "Join" && m.GetParameters().Length == 5).First();
-   var genericJoinMethod = joinMethod.MakeGenericMethod(typeof(T), typeof(TLookup), typeof(TKey), typeof(IQueryable<TLookup>));
-   var result = genericJoinMethod.Invoke(source, new object[] { source, lookup, outerKeySelector, innerKeySelector, resultSelector });
-    IQueryable<Allotment> results = source.Provider.CreateQuery<TLookup>(genericJoinMethod);
-   return (IQueryable<TLookup>)result;
-}
+        //    MethodCallExpression whereCallExpression = Expression.Call(
+        //        typeof(Queryable),
+        //        "Join",
+        //        new Type[] { queryableData.ElementType },
+        //        queryableData.Expression,
+        //        Expression.Lambda<Func<Allotment, bool>>(e1, new ParameterExpression[] { pe }));
+        //    IQueryable<Allotment> results = queryableData.Provider.CreateQuery<Allotment>(whereCallExpression);
+        //    MethodInfo joinMethod = typeof(Queryable)
+        //        .GetMethods(BindingFlags.Static | BindingFlags.Public)
+        //        .Where(m => m.Name == "Join" && m.GetParameters().Length == 5)
+        //        .First();
+
+        //    var genericJoinMethod = joinMethod
+        //        .MakeGenericMethod(typeof(T), typeof(TLookup), typeof(TKey), typeof(IQueryable<TLookup>));
+        //    var result = genericJoinMethod
+        //        .Invoke(source, new object[] 
+        //        { 
+        //            source, lookup, outerKeySelector, innerKeySelector, resultSelector 
+        //        });
+        //    IQueryable<Allotment> results = source.Provider.CreateQuery<TLookup>(genericJoinMethod);
+
+        //    return (IQueryable<TLookup>)result;
+        //}
     }
 }
