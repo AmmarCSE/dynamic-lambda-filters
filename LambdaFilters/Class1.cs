@@ -12,9 +12,8 @@ namespace LambdaFilters
     public class Class1
     {
         private TAS_DevEntities dbContext = ContextHelper.GetContext();
-        public void Listtesting123<TMainSet, TFilterSet>() where TMainSet : class where TFilterSet : class 
+        public void Listtesting123<TMainSet, TFilterSet>(Filter<TMainSet, TFilterSet> filter) where TMainSet : class where TFilterSet : class 
         {
- 
             var test = dbContext
                 .Set<TMainSet>()
                 .Where(TASTemplateWhereExpression<TMainSet>())
@@ -22,17 +21,17 @@ namespace LambdaFilters
                     dbContext
                         .Set<TFilterSet>()
                         .Where(TASTemplateWhereExpression<TFilterSet>())
-                    , GetJoinPredicate<TMainSet>()
-                    , GetJoinPredicate<TFilterSet>()
+                    , GetJoinPredicate<TMainSet>(filter.MainSetKey)
+                    , GetJoinPredicate<TFilterSet>(filter.FilterSetKey)
                     , (m, f) => new { TFilterSet = f })
                 .Distinct();
         }
 
-        public Expression<Func<TEntity, int>> GetJoinPredicate<TEntity>() where TEntity : class
+        public Expression<Func<TEntity, int>> GetJoinPredicate<TEntity>(string property) where TEntity : class
         {
             ParameterExpression parameter = Expression.Parameter(typeof(TEntity), "entity");
 
-            return Expression.Lambda<Func<TEntity, int>>(Expression.PropertyOrField(parameter, "HotelID"), parameter);
+            return Expression.Lambda<Func<TEntity, int>>(Expression.PropertyOrField(parameter, property), parameter);
         }
 
         public Expression<Func<TEntity, bool>> TASTemplateWhereExpression<TEntity>() where TEntity : class
