@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -12,29 +13,53 @@ namespace LambdaFilters
     public class Class1
     {
         private TAS_DevEntities dbContext = ContextHelper.GetContext();
-        public void Listtesting123<TMainSet, TFilterSet>(Filter<TMainSet, TFilterSet> filter) where TMainSet : class where TFilterSet : class 
+        public void Listtesting123<TMainSet, TFilterSet>(Filter<TMainSet, TFilterSet> filter, List<FilterSearchItem> searchItems) 
+            where TMainSet : class where TFilterSet : class 
         {
             var test = dbContext
                 .Set<TMainSet>()
-                .Where(TASTemplateWhereExpression<TMainSet>())
+                .Where(GenerateWhereClause<TMainSet>(searchItems[0]))
                 .Join( 
                     dbContext
                         .Set<TFilterSet>()
                         .Where(TASTemplateWhereExpression<TFilterSet>())
                     , GetJoinPredicate<TMainSet>(filter.MainSetKey)
                     , GetJoinPredicate<TFilterSet>(filter.FilterSetKey)
-                    , (m, f) => new { TFilterSet = f })
+                    , (m, f) => f)
+                .Select(GetSelectClause<TFilterSet>(filter.FilterSetKey, filter.FilterSetDisplayProperty))
                 .Distinct();
         }
 
-        public Expression<Func<TEntity, int>> GetJoinPredicate<TEntity>(string property) where TEntity : class
+        public Expression<Func<TEntity, int>> GetJoinPredicate<TEntity>(string property)
         {
             ParameterExpression parameter = Expression.Parameter(typeof(TEntity), "entity");
 
             return Expression.Lambda<Func<TEntity, int>>(Expression.PropertyOrField(parameter, property), parameter);
         }
 
-        public Expression<Func<TEntity, bool>> TASTemplateWhereExpression<TEntity>() where TEntity : class
+        public Expression<Func<TFilterSet, FilterItem>> GetSelectClause<TFilterSet>
+            (string keyProperty, string valueProperty)
+        {
+            Type filterSetType = typeof( TFilterSet );
+            Type filterItemType = typeof( FilterItem );
+
+            ParameterExpression parameter = Expression.Parameter( filterSetType, "filterSet" );
+
+            MemberExpression filterSetId = 
+                Expression.MakeMemberAccess(parameter, filterSetType.GetProperty(keyProperty));
+            MemberExpression filterSetValue = 
+                Expression.MakeMemberAccess(parameter, filterSetType.GetProperty(valueProperty));
+
+            MemberAssignment idBind = Expression.Bind( filterItemType.GetProperty("Id"), filterSetId );
+            MemberAssignment valueBind = Expression.Bind( filterItemType.GetProperty( "Value" ), filterSetValue );
+
+            NewExpression newFilterItem = Expression.New(filterItemType);
+            MemberInitExpression init = Expression.MemberInit(newFilterItem, valueBind, idBind);
+
+           return (Expression<Func<TFilterSet,FilterItem>>)Expression.Lambda(init, parameter);
+        }
+
+        public Expression<Func<TEntity, bool>> TASTemplateWhereExpression<TEntity>()
         {
             ParameterExpression parameter = Expression.Parameter(typeof(TEntity), "entity");
 
@@ -50,15 +75,26 @@ namespace LambdaFilters
 
             Expression predicateBody = Expression.And(expressionDeleted, expressionActive);
 
-            //MethodCallExpression whereCallExpression = Expression.Call(
-            //    typeof(Queryable)
-            //    , "WHERE"
-            //    , new Type[] { queryableData.ElementType }
-            //    , queryableData.Expression
-            //    , 
-            //IQueryable<TEntity> results = queryableData.Provider.CreateQuery<TEntity>(whereCallExpression);
             return Expression.Lambda<Func<TEntity, bool>>(predicateBody
                 , new ParameterExpression[] { parameter });
+        }
+
+        public Expression<Func<TMainSet, bool>> GenerateWhereClause<TMainSet>(FilterSearchItem searchItem)
+        {
+            List<int> array = searchItem.SearchData.Split(new string[] { "," }, StringSplitOptions.None).Select(s => int.Parse(s)).ToList();
+            ParameterExpression parameter = Expression.Parameter(typeof(TMainSet), "entity");
+
+            MemberExpression key = Expression.Property(parameter, typeof(TMainSet), searchItem.SearchKey);
+            Type searchValuesType = array.GetType().GetGenericArguments().FirstOrDefault();
+            ConstantExpression searchValuesAsConstant = Expression.Constant(array, array.GetType());
+            MethodCallExpression containsBody = 
+                Expression.Call(typeof(Enumerable)
+                    , "Contains"
+                    , new[] { searchValuesType }
+                    , searchValuesAsConstant
+                    , key);
+
+            return Expression.Lambda<Func<TMainSet, bool>>(containsBody, parameter);
         }
         public void LambdaTreeJoin<TMainSet, TFilterSet>() where TMainSet : class where TFilterSet : class 
         {
