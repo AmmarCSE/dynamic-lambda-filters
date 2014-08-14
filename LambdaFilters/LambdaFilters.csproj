@@ -47,11 +47,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FilterSearchItem.cs" />
-    <Compile Include="FilterItem.cs" />
-    <Compile Include="Filter.cs" />
-    <Compile Include="Class1.cs" />
-    <Compile Include="ReservatonFilters.cs" />
+    <Compile Include="FilterAssembler\FilterAssembler.cs" />
+    <Compile Include="FilterBuilder.cs" />
+    <Compile Include="LambdaFilterResources\FilterModels\FilterSearchItem.cs" />
+    <Compile Include="LambdaFilterResources\FilterModels\FilterItem.cs" />
+    <Compile Include="LambdaFilterResources\FilterModels\Filter.cs" />
+    <Compile Include="FilterData\FilterDataRetriever.cs" />
+    <Compile Include="FilterData\LambdaHelper\LambdaExpressionHelper.cs" />
+    <Compile Include="LambdaFilterResources\FilterModels\IFilter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -60,6 +63,7 @@
       <Name>Travel.Agency.EntityFramework</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

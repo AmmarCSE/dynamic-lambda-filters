@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LambdaFilters
+namespace LambdaFilters.LamdaFilterResources.FilterModels
 {
     public class FilterSearchItem
     {

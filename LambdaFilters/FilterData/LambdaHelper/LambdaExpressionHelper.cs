@@ -1,35 +1,16 @@
-﻿using System;
-using System.Collections;
+﻿using LambdaFilters.LamdaFilterResources;
+using LambdaFilters.LamdaFilterResources.FilterModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Travel.Agency.EntityFramework;
 
-namespace LambdaFilters
+namespace LambdaFilters.FilterData.LambdaHelper
 {
-    public class Class1
+    class LambdaExpressionHelper
     {
-        private TAS_DevEntities dbContext = ContextHelper.GetContext();
-        public void Listtesting123<TMainSet, TFilterSet>(Filter<TMainSet, TFilterSet> filter, List<FilterSearchItem> searchItems) 
-            where TMainSet : class where TFilterSet : class 
-        {
-            var test = dbContext
-                .Set<TMainSet>()
-                .Where(GenerateWhereClause<TMainSet>(searchItems[0]))
-                .Join( 
-                    dbContext
-                        .Set<TFilterSet>()
-                        .Where(TASTemplateWhereExpression<TFilterSet>())
-                    , GetJoinPredicate<TMainSet>(filter.MainSetKey)
-                    , GetJoinPredicate<TFilterSet>(filter.FilterSetKey)
-                    , (m, f) => f)
-                .Select(GetSelectClause<TFilterSet>(filter.FilterSetKey, filter.FilterSetDisplayProperty))
-                .Distinct();
-        }
-
         public Expression<Func<TEntity, int>> GetJoinPredicate<TEntity>(string property)
         {
             ParameterExpression parameter = Expression.Parameter(typeof(TEntity), "entity");
@@ -95,41 +76,6 @@ namespace LambdaFilters
                     , key);
 
             return Expression.Lambda<Func<TMainSet, bool>>(containsBody, parameter);
-        }
-        public void LambdaTreeJoin<TMainSet, TFilterSet>() where TMainSet : class where TFilterSet : class 
-        {
-
-            IQueryable<TMainSet> queryableData = dbContext.Set<TMainSet>().AsQueryable<TMainSet>();
-
-            // Compose the expression tree that represents the parameter to the predicate.
-            ParameterExpression s = Expression.Parameter(queryableData.ElementType, "s");
-            Expression<Func<TMainSet, int>> outerKeySelector =
-                Expression.Lambda<Func<TMainSet, int>>(Expression.PropertyOrField(s, "HotelID"), s);
-
-            ParameterExpression l = Expression.Parameter(dbContext.Set<TFilterSet>().AsQueryable<TFilterSet>().ElementType, "l");
-            Expression<Func<TFilterSet, int>> innerKeySelector =
-                Expression.Lambda<Func<TFilterSet, int>>(Expression.PropertyOrField(l, "HotelID"), l);
-
-            var resultSelector = Expression.Lambda<Func<TMainSet, TFilterSet, TFilterSet>>(l, s, l);
-            MethodCallExpression join =  Expression.Call (
-            typeof (Queryable),
-            "Join",
-            new Type[]
-            {
-                typeof (TMainSet),   // TOuter,
-                typeof (TFilterSet),   // TInner,
-                typeof (int),       // TKey,
-                typeof (TFilterSet)      // TResult
-            },
-            new Expression[]
-            {
-                Expression.PropertyOrField (Expression.Constant (dbContext), "Allotments"),
-                Expression.PropertyOrField (Expression.Constant (dbContext), "Hotels"),
-                outerKeySelector,
-                innerKeySelector,
-                resultSelector
-            });
-             var resutl = Expression.Lambda<Func<IQueryable<TFilterSet>>> (join).Compile()();
         }
     }
 }
