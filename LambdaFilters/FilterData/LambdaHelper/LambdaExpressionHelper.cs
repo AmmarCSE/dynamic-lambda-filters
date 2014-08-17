@@ -6,16 +6,17 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using System.Data.Entity;
 
 namespace LambdaFilters.FilterData.LambdaHelper
 {
     class LambdaExpressionHelper
     {
-        public Expression<Func<TEntity, int>> GetJoinPredicate<TEntity>(string property)
+        public Expression<Func<TEntity, TKeyType>> GetJoinPredicate<TEntity, TKeyType>(string property)
         {
             ParameterExpression parameter = Expression.Parameter(typeof(TEntity), "entity");
 
-            return Expression.Lambda<Func<TEntity, int>>(Expression.PropertyOrField(parameter, property), parameter);
+            return Expression.Lambda<Func<TEntity, TKeyType>>(Expression.Convert(Expression.PropertyOrField(parameter, property), typeof(TKeyType)), parameter);
         }
 
         public Expression<Func<TFilterSet, FilterItem>> GetSelectClause<TFilterSet>

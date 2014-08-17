@@ -10,18 +10,21 @@ using Travel.Agency.EntityFramework;
 
 namespace LambdaFilters.LamdaFilterResources.FilterModels
 {
-    public class Filter<TMainSet, TFilterSet> : IFilter
+    public class Filter<TMainSet, TFilterSet, TKeyType> : IFilter
             where TMainSet : class where TFilterSet : class 
     {
+        //public FilterKey<TMainSetKeyType> MainSetKey { get; set; }
+        //public FilterKey<TFilterSetKeyType> FilterSetKey { get; set; }
         public string MainSetKey { get; set; }
         public string FilterSetKey { get; set; }
         public string FilterSetDisplayProperty { get; set; }
         public string FilterTitle { get; set; }
         public string FilterType { get; set; }
+        public List<FilterItem> FilterItems { get; set; }
 
-        public List<FilterItem> GetFilterDataForFilter(List<FilterSearchItem> searchItems)
+        public void SetFilterDataForFilter(List<FilterSearchItem> searchItems)
         {
-            return
+            FilterItems =
                 new FilterBuilder()
                 .GenerateFilters(this, null);
         }

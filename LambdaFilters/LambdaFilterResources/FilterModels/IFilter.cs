@@ -9,6 +9,8 @@ namespace LambdaFilters.LambdaFilterResources.FilterModels
 {
     public interface IFilter
     {
-        List<FilterItem> GetFilterDataForFilter(List<FilterSearchItem> searchItems); 
+        List<FilterItem> FilterItems { get; set; }
+
+        void SetFilterDataForFilter(List<FilterSearchItem> searchItems); 
     }
 }

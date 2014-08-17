@@ -11,8 +11,9 @@ namespace LambdaFilters
 {
     public class FilterBuilder
     {
-        public List<FilterItem> GenerateFilters<TMainSet, TFilterSet>(Filter<TMainSet, TFilterSet> filter
-            , List<FilterSearchItem> searchItems)
+        public List<FilterItem> GenerateFilters<TMainSet, TFilterSet, TKeyType>(
+            Filter<TMainSet, TFilterSet, TKeyType> filter
+                , List<FilterSearchItem> searchItems)
             where TMainSet : class where TFilterSet : class 
         {
             FilterDataRetriever dataReteriever = new FilterDataRetriever();
