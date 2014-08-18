@@ -41,6 +41,32 @@ namespace LambdaFilters.FilterData.LambdaHelper
            return (Expression<Func<TFilterSet,FilterItem>>)Expression.Lambda(init, parameter);
         }
 
+        public Expression<Func<TJunctionSet, TFilterSet, FilterItem>> GetJoinResultSelector<TJunctionSet, TFilterSet>
+            (string keyProperty, string valueProperty)
+        {
+            Type junctionSetType = typeof( TJunctionSet );
+            Type filterSetType = typeof( TFilterSet );
+            Type filterItemType = typeof( FilterItem );
+
+            //ParameterExpression parentParameter = Expression.Parameter( typeof(object), "parent" );
+            ParameterExpression junctionParameter = Expression.Parameter( junctionSetType, "junctionSet" );
+            ParameterExpression filterParameter = Expression.Parameter( filterSetType, "filterSet" );
+
+            MemberExpression junctionSetId = 
+                Expression.MakeMemberAccess(junctionParameter, junctionSetType.GetProperty(keyProperty));
+            MemberExpression filterSetValue = 
+                Expression.MakeMemberAccess(filterParameter, filterSetType.GetProperty(valueProperty));
+
+            MemberAssignment idBind = Expression.Bind( filterItemType.GetProperty("Id"), junctionSetId );
+            MemberAssignment valueBind = Expression.Bind( filterItemType.GetProperty( "Value" ), filterSetValue );
+
+            NewExpression newFilterItem = Expression.New(filterItemType);
+            MemberInitExpression init = Expression.MemberInit(newFilterItem, valueBind, idBind);
+
+           return (Expression<Func<TJunctionSet, TFilterSet, FilterItem>>)Expression.Lambda(init
+               , new ParameterExpression[]{ junctionParameter,filterParameter} );
+        }
+
         public Expression<Func<TEntity, bool>> TASTemplateWhereExpression<TEntity>()
         {
             ParameterExpression parameter = Expression.Parameter(typeof(TEntity), "entity");

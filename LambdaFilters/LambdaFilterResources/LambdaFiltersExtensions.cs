@@ -12,12 +12,17 @@ namespace System.Web.Mvc.Html
 {
     public static class LambdaFiltersExtensions
     {
-        public static MvcHtmlString FiltersFor<TModel, TFilter>(this HtmlHelper<TModel> htmlHelper, Expression<Func<TModel, TFilter>> expression)
+        public static MvcHtmlString FiltersFor<TModel, TFilter>(this HtmlHelper<TModel> htmlHelper
+            , Expression<Func<TModel, TFilter>> expression
+            , string filterModelName)
         {
             ModelMetadata metadata = ModelMetadata.FromLambdaExpression(expression, htmlHelper.ViewData);
+
             FilterAssembler assembler = new FilterAssembler();
-            assembler.AssembleFiltersForModel((List<IFilter>)metadata.Model, null);
-            return null;
+            string serializedFilters = 
+                assembler.AssembleFiltersForModel(filterModelName, (List<IFilter>)metadata.Model, null);
+
+            return assembler.BuildRazorScriptBlock(serializedFilters);
         }
     }
 }

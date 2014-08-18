@@ -1,4 +1,5 @@
-﻿using LambdaFilters.FilterData.LambdaHelper;
+﻿using LambdaFilters.FilterData;
+using LambdaFilters.FilterData.LambdaHelper;
 using LambdaFilters.LambdaFilterResources.FilterModels;
 using System;
 using System.Collections.Generic;
@@ -13,8 +14,6 @@ namespace LambdaFilters.LamdaFilterResources.FilterModels
     public class Filter<TMainSet, TFilterSet, TKeyType> : IFilter
             where TMainSet : class where TFilterSet : class 
     {
-        //public FilterKey<TMainSetKeyType> MainSetKey { get; set; }
-        //public FilterKey<TFilterSetKeyType> FilterSetKey { get; set; }
         public string MainSetKey { get; set; }
         public string FilterSetKey { get; set; }
         public string FilterSetDisplayProperty { get; set; }
@@ -25,8 +24,28 @@ namespace LambdaFilters.LamdaFilterResources.FilterModels
         public void SetFilterDataForFilter(List<FilterSearchItem> searchItems)
         {
             FilterItems =
-                new FilterBuilder()
-                .GenerateFilters(this, null);
+                new FilterDataRetriever()
+                .GetFilterDataForFilter(this, null);
+        }
+    }
+
+    public class Filter<TMainSet, TJunctionSet, TFilterSet, TKeyType> : IFilter
+            where TMainSet : class where TJunctionSet : class where TFilterSet : class 
+    {
+        public string MainSetKey { get; set; }
+        public string JunctionSetLeftKey { get; set; }
+        public string JunctionSetRightKey { get; set; }
+        public string FilterSetKey { get; set; }
+        public string FilterSetDisplayProperty { get; set; }
+        public string FilterTitle { get; set; }
+        public string FilterType { get; set; }
+        public List<FilterItem> FilterItems { get; set; }
+
+        public void SetFilterDataForFilter(List<FilterSearchItem> searchItems)
+        {
+            FilterItems =
+                new FilterDataRetriever()
+                .GetFilterDataForFilter(this, null);
         }
     }
 }

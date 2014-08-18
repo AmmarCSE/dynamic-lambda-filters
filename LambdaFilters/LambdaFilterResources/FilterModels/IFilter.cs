@@ -10,6 +10,7 @@ namespace LambdaFilters.LambdaFilterResources.FilterModels
     public interface IFilter
     {
         List<FilterItem> FilterItems { get; set; }
+        //object[] FilterAttributes { get; set; }
 
         void SetFilterDataForFilter(List<FilterSearchItem> searchItems); 
     }
