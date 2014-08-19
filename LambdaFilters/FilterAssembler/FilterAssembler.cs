@@ -18,7 +18,10 @@ namespace LambdaFilters.FilterAssembler
         {
             foreach (var filter in filters)
             {
-                filter.SetFilterDataForFilter(searchItems);
+                if (filter.FilterType != "autocomplete")
+                {
+                    filter.SetFilterDataForFilter(searchItems);
+                }
             }
 
             var filterResults = AssembleFilterStructure(filterModelName, filters);

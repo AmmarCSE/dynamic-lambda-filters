@@ -48,4 +48,26 @@ namespace LambdaFilters.LamdaFilterResources.FilterModels
                 .GetFilterDataForFilter(this, null);
         }
     }
+
+    public class Filter<TParentSet, TMainSet, TJunctionSet, TFilterSet, TKeyType> : IFilter
+            where TParentSet : class where TMainSet : class where TJunctionSet : class where TFilterSet : class 
+    {
+        public string ParentSetKey { get; set; }
+        public string MainSetLeftKey { get; set; }
+        public string MainSetRightKey { get; set; }
+        public string JunctionSetLeftKey { get; set; }
+        public string JunctionSetRightKey { get; set; }
+        public string FilterSetKey { get; set; }
+        public string FilterSetDisplayProperty { get; set; }
+        public string FilterTitle { get; set; }
+        public string FilterType { get; set; }
+        public List<FilterItem> FilterItems { get; set; }
+
+        public void SetFilterDataForFilter(List<FilterSearchItem> searchItems)
+        {
+            FilterItems =
+                new FilterDataRetriever()
+                .GetFilterDataForFilter(this, null);
+        }
+    }
 }
