@@ -16,11 +16,11 @@ namespace LambdaFilters.FilterAssembler
             , List<IFilter> filters
             , List<FilterSearchItem> searchItems)
         {
-            foreach (var filter in filters)
+            foreach (var filter in filters.Where(w => typeof(BaseDataFilter).IsAssignableFrom(w.GetType())))
             {
-                if (filter.FilterType != "autocomplete")
+                if (filter.FilterType == "checkbox")
                 {
-                    filter.SetFilterDataForFilter(searchItems);
+                    ((BaseDataFilter)filter).SetFilterDataForFilter(searchItems);
                 }
             }
 
@@ -32,10 +32,12 @@ namespace LambdaFilters.FilterAssembler
         public dynamic AssembleFilterStructure(string filterModelName
             , List<IFilter> filters)
         {
-            return new Dictionary<string, List<IFilter>>()
+            return new Dictionary<string, dynamic>()
             {
                 {
-                    filterModelName, filters
+                    filterModelName
+                    , filters
+                        .Select(s => s.ConstructReturnObject())
                 }
             };
         }

@@ -1,5 +1,6 @@
 ﻿using LambdaFilters.FilterAssembler;
 using LambdaFilters.LambdaFilterResources.FilterModels;
+using LambdaFilters.LamdaFilterResources.FilterModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,9 @@ namespace System.Web.Mvc.Html
 
             FilterAssembler assembler = new FilterAssembler();
             string serializedFilters = 
-                assembler.AssembleFiltersForModel(filterModelName, (List<IFilter>)metadata.Model, null);
+                assembler.AssembleFiltersForModel(filterModelName
+                , (List<IFilter>)metadata.Model
+                , new List<FilterSearchItem>());
 
             return assembler.BuildRazorScriptBlock(serializedFilters);
         }

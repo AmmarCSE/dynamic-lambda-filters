@@ -11,9 +11,8 @@ namespace LambdaFilters.LambdaFilterResources.FilterModels
     {
         string FilterTitle { get; set; }
         string FilterType { get; set; }
-        List<FilterItem> FilterItems { get; set; }
-        //object[] FilterAttributes { get; set; }
 
-        void SetFilterDataForFilter(List<FilterSearchItem> searchItems); 
+        dynamic ConstructReturnObject(); 
     }
+
 }

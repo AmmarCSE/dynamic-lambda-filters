@@ -27,8 +27,8 @@ namespace LambdaFilters.FilterData
 
             return dbContext
                  .Set<TMainSet>()
-                //.Where(expressionHelper.GenerateWhereClause<TMainSet>(searchItems[0]))
-                 .Where(expressionHelper.TASTemplateWhereExpression<TMainSet>())
+                 .Where(expressionHelper.GenerateWhereClause<TMainSet>(searchItems))
+                 //.Where(expressionHelper.TASTemplateWhereExpression<TMainSet>())
                  .Join(
                      dbContext
                          .Set<TFilterSet>()
@@ -87,14 +87,14 @@ namespace LambdaFilters.FilterData
                      dbContext
                          .Set<TMainSet>()
                          .Where(expressionHelper.TASTemplateWhereExpression<TMainSet>())
-                     , expressionHelper.GetJoinPredicate<TParentSet, TKeyType>(filter.ParentSetKey)
-                     , expressionHelper.GetJoinPredicate<TMainSet, TKeyType>(filter.MainSetLeftKey)
+                     , expressionHelper.GetJoinPredicate<TParentSet, TKeyType>(filter.MainSetKey)
+                     , expressionHelper.GetJoinPredicate<TMainSet, TKeyType>(filter.ChildSetLeftKey)
                      , (p, m) => m)
                  .Join(
                      dbContext
                          .Set<TJunctionSet>()
                          //.Where(expressionHelper.TASTemplateWhereExpression<TJunctionSet>())
-                     , expressionHelper.GetJoinPredicate<TMainSet, TKeyType>(filter.MainSetRightKey)
+                     , expressionHelper.GetJoinPredicate<TMainSet, TKeyType>(filter.ChildSetRightKey)
                      , expressionHelper.GetJoinPredicate<TJunctionSet, TKeyType>(filter.JunctionSetLeftKey)
                      , (m, j) => j)
                  .Join(

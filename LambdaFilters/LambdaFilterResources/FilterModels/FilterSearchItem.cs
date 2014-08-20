@@ -11,5 +11,9 @@ namespace LambdaFilters.LamdaFilterResources.FilterModels
         public string SearchType { get; set; }
         public string SearchKey { get; set; }
         public string SearchData { get; set; }
+
+        public FilterSearchItem()
+        {
+        }
     }
 }

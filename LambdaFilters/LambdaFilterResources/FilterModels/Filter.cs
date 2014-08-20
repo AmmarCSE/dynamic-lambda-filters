@@ -11,25 +11,44 @@ using Travel.Agency.EntityFramework;
 
 namespace LambdaFilters.LamdaFilterResources.FilterModels
 {
-    public class Filter<TMainSet, TFilterSet, TKeyType> : IFilter
+    public class Filter : IFilter
+    {
+        public string MainSetKey { get; set; }
+        public string FilterTitle { get; set; }
+        public string FilterType { get; set; }
+
+        public dynamic ConstructReturnObject()
+        {
+            return 
+                new {
+                    FilterTitle = this.FilterTitle
+                    , FilterType = this.FilterType
+                    , FilterSearchKey = this.MainSetKey
+                };
+        }
+    }
+    
+    public class Filter<TMainSet, TFilterSet, TKeyType> : BaseDataFilter
             where TMainSet : class where TFilterSet : class 
     {
         public string MainSetKey { get; set; }
         public string FilterSetKey { get; set; }
         public string FilterSetDisplayProperty { get; set; }
-        public string FilterTitle { get; set; }
-        public string FilterType { get; set; }
-        public List<FilterItem> FilterItems { get; set; }
 
-        public void SetFilterDataForFilter(List<FilterSearchItem> searchItems)
+        public override void SetFilterDataForFilter(List<FilterSearchItem> searchItems)
         {
             FilterItems =
                 new FilterDataRetriever()
-                .GetFilterDataForFilter(this, null);
+                .GetFilterDataForFilter(this, searchItems);
+        }
+
+        public override string GetFilterSearchKey()
+        {
+            return MainSetKey;
         }
     }
 
-    public class Filter<TMainSet, TJunctionSet, TFilterSet, TKeyType> : IFilter
+    public class Filter<TMainSet, TJunctionSet, TFilterSet, TKeyType> : BaseDataFilter
             where TMainSet : class where TJunctionSet : class where TFilterSet : class 
     {
         public string MainSetKey { get; set; }
@@ -37,37 +56,41 @@ namespace LambdaFilters.LamdaFilterResources.FilterModels
         public string JunctionSetRightKey { get; set; }
         public string FilterSetKey { get; set; }
         public string FilterSetDisplayProperty { get; set; }
-        public string FilterTitle { get; set; }
-        public string FilterType { get; set; }
-        public List<FilterItem> FilterItems { get; set; }
 
-        public void SetFilterDataForFilter(List<FilterSearchItem> searchItems)
+        public override void SetFilterDataForFilter(List<FilterSearchItem> searchItems)
         {
             FilterItems =
                 new FilterDataRetriever()
-                .GetFilterDataForFilter(this, null);
+                .GetFilterDataForFilter(this, searchItems);
+        }
+
+        public override string GetFilterSearchKey()
+        {
+            return MainSetKey;
         }
     }
 
-    public class Filter<TParentSet, TMainSet, TJunctionSet, TFilterSet, TKeyType> : IFilter
-            where TParentSet : class where TMainSet : class where TJunctionSet : class where TFilterSet : class 
+    public class Filter<TParentSet, TChildSet, TJunctionSet, TFilterSet, TKeyType> : BaseDataFilter
+            where TParentSet : class where TChildSet : class where TJunctionSet : class where TFilterSet : class 
     {
-        public string ParentSetKey { get; set; }
-        public string MainSetLeftKey { get; set; }
-        public string MainSetRightKey { get; set; }
+        public string MainSetKey { get; set; }
+        public string ChildSetLeftKey { get; set; }
+        public string ChildSetRightKey { get; set; }
         public string JunctionSetLeftKey { get; set; }
         public string JunctionSetRightKey { get; set; }
         public string FilterSetKey { get; set; }
         public string FilterSetDisplayProperty { get; set; }
-        public string FilterTitle { get; set; }
-        public string FilterType { get; set; }
-        public List<FilterItem> FilterItems { get; set; }
 
-        public void SetFilterDataForFilter(List<FilterSearchItem> searchItems)
+        public override void SetFilterDataForFilter(List<FilterSearchItem> searchItems)
         {
             FilterItems =
                 new FilterDataRetriever()
-                .GetFilterDataForFilter(this, null);
+                .GetFilterDataForFilter(this, searchItems);
+        }
+
+        public override string GetFilterSearchKey()
+        {
+            return typeof(TChildSet).Name + "." + ChildSetRightKey;
         }
     }
 }
