@@ -53,7 +53,7 @@ namespace LambdaFilters.FilterData
 
             return dbContext
                  .Set<TMainSet>()
-                 .Where(expressionHelper.TASTemplateWhereExpression<TMainSet>())
+                 .Where(expressionHelper.GenerateWhereClause<TMainSet>(searchItems))
                  .Join(
                      dbContext
                          .Set<TJunctionSet>()
@@ -82,7 +82,7 @@ namespace LambdaFilters.FilterData
 
             return dbContext
                  .Set<TParentSet>()
-                 .Where(expressionHelper.TASTemplateWhereExpression<TParentSet>())
+                 .Where(expressionHelper.GenerateWhereClause<TParentSet>(searchItems))
                  .Join(
                      dbContext
                          .Set<TMainSet>()

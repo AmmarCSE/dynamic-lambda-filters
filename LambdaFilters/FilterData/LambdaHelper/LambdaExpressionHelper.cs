@@ -83,50 +83,82 @@ namespace LambdaFilters.FilterData.LambdaHelper
 
             Expression predicateBody = Expression.And(expressionDeleted, expressionActive);
 
+            var test =Expression.Lambda<Func<TEntity, bool>>(predicateBody
+                , new ParameterExpression[] { parameter }); 
             return Expression.Lambda<Func<TEntity, bool>>(predicateBody
                 , new ParameterExpression[] { parameter });
         }
 
         public Expression<Func<TMainSet, bool>> GenerateWhereClause<TMainSet>(List<FilterSearchItem> searchItems)
         {
-            Expression<Func<TMainSet, bool>>  whereExpression = TASTemplateWhereExpression<TMainSet>();
+            Expression<Func<TMainSet, bool>> defaultExpression = TASTemplateWhereExpression<TMainSet>();
+
+            Expression whereBody = defaultExpression.Body;
+            ParameterExpression whereParameter = defaultExpression.Parameters[0];
+
             foreach (var searchItem in searchItems)
             {
-                whereExpression = GenerateSubWhereClause<TMainSet>(whereExpression, searchItem);
+                whereBody = GenerateSubWhereClause<TMainSet>(whereParameter, whereBody, searchItem);
             }
 
-            return whereExpression;
+            return Expression.Lambda<Func<TMainSet, bool>>(whereBody
+                , whereParameter);
         }
 
-        public Expression<Func<TMainSet, bool>> GenerateSubWhereClause<TMainSet>(Expression<Func<TMainSet, bool>>  whereExpression, FilterSearchItem searchItem)
+        public Expression GenerateSubWhereClause<TMainSet>(ParameterExpression appendantParameter, Expression appendantExpression, FilterSearchItem searchItem)
         {
-            ParameterExpression parameter = Expression.Parameter(typeof(TMainSet), "entity");
+            ConstantExpression filterValues;
+            Expression expressionBody = null;
+
+            List<string> propertyPath = searchItem.SearchKey.Split(new char[] {'.'}).ToList();
+            MemberExpression property = Expression.Property(appendantParameter, typeof(TMainSet), propertyPath[0]);
+
 
             if (searchItem.SearchType == "List<int>")
             {
                 List<int> array = searchItem.SearchData.Split(new string[] { "," }, StringSplitOptions.None).Select(s => int.Parse(s)).ToList();
 
-                MemberExpression key = Expression.Property(parameter, typeof(TMainSet), searchItem.SearchKey);
-
-                if (key.Type == typeof(int?))
+                if (propertyPath.Count > 1)
                 {
-                    key = Expression.Property(key, "Value");
+                    //names.Any(x => subnames.Contains(x))
+                    //array1.Intersect(array2).Any()
+
+                    //propertyPath.RemoveAt(0);
+                    //property = Expression.Property(property, propertyPath[0]);
                 }
+
+                if (property.Type == typeof(int?))
+                {
+                    property = Expression.Property(property, "Value");
+                }
+
                 Type searchValuesType = array.GetType().GetGenericArguments().FirstOrDefault();
-                ConstantExpression searchValuesAsConstant = Expression.Constant(array, array.GetType());
-                MethodCallExpression containsBody =
+                filterValues = Expression.Constant(array, array.GetType());
+
+                expressionBody =
                     Expression.Call(typeof(Enumerable)
                         , "Contains"
                         , new[] { searchValuesType }
-                        , searchValuesAsConstant
-                        , key);
+                        , filterValues
+                        , property);
+            }
+            else if (searchItem.SearchType == "DateTime")
+            {
+                string[] subArgs = searchItem.SearchData.Split(new char[] { '.' });
 
-                //Expression appendedExpression = Expression.And(whereExpression, Expression.Lambda<Func<TMainSet, bool>>(containsBody, parameter));
-                return Expression.Lambda<Func<TMainSet, bool>>(containsBody
-                    , new ParameterExpression[] { parameter });
+                filterValues = Expression.Constant(DateTime.Parse(subArgs[0]));
+
+                if (subArgs[1] == "GreaterThan")
+                {
+                    expressionBody = Expression.GreaterThanOrEqual(property, filterValues);
+                }
+                else
+                {
+                    expressionBody = Expression.LessThanOrEqual(property, filterValues);
+                }
             }
 
-            return null;
+            return Expression.And(expressionBody, appendantExpression);
         }
     }
 }

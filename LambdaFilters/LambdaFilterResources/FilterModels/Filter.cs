@@ -80,6 +80,7 @@ namespace LambdaFilters.LamdaFilterResources.FilterModels
         public string JunctionSetRightKey { get; set; }
         public string FilterSetKey { get; set; }
         public string FilterSetDisplayProperty { get; set; }
+        public string ChildSetPropertyName { get; set; }
 
         public override void SetFilterDataForFilter(List<FilterSearchItem> searchItems)
         {
@@ -90,7 +91,7 @@ namespace LambdaFilters.LamdaFilterResources.FilterModels
 
         public override string GetFilterSearchKey()
         {
-            return typeof(TChildSet).Name + "." + ChildSetRightKey;
+            return ChildSetPropertyName + "." + ChildSetRightKey;
         }
     }
 }
