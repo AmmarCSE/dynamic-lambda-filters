@@ -54,7 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FilterAssembler\FilterAssembler.cs" />
-    <Compile Include="FilterDataBuilder.cs" />
+    <Compile Include="FilterData\FilterDataHelper.cs" />
     <Compile Include="LambdaFilterResources\Attributes\JunctionEntityAttribute.cs" />
     <Compile Include="LambdaFilterResources\FilterModels\BaseDataFilter.cs" />
     <Compile Include="LambdaFilterResources\FilterModels\FilterSearchItem.cs" />

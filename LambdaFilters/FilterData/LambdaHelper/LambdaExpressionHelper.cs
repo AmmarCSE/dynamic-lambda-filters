@@ -98,6 +98,7 @@ namespace LambdaFilters.FilterData.LambdaHelper
 
             foreach (var searchItem in searchItems)
             {
+                if(searchItem.SearchKey.Split(new char[] {'.'}).ToList().Count == 1)
                 whereBody = GenerateSubWhereClause<TMainSet>(whereParameter, whereBody, searchItem);
             }
 
@@ -120,6 +121,7 @@ namespace LambdaFilters.FilterData.LambdaHelper
 
                 if (propertyPath.Count > 1)
                 {
+                    return Expression.And(Expression.LessThanOrEqual(property, property), appendantExpression);
                     //names.Any(x => subnames.Contains(x))
                     //array1.Intersect(array2).Any()
 
