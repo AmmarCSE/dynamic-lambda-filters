@@ -17,17 +17,18 @@ namespace LambdaFilters.FilterData
     public class FilterDataRetriever
     {
         private TAS_DevEntities dbContext = ContextHelper.GetContext();
-        private FilterDataHelper dataHelper = new FilterDataHelper();
-        private LambdaExpressionHelper expressionHelper = new LambdaExpressionHelper();
 
         public List<FilterItem> GetFilterDataForFilter<TMainSet, TFilterSet, TKeyType>(
             Filter<TMainSet, TFilterSet, TKeyType> filter
                 , List<FilterSearchItem> searchItems) 
             where TMainSet : class where TFilterSet : class 
         {
-            var source = dataHelper.RetreiveMainSetQueryable<TMainSet>(searchItems);
+            LambdaExpressionHelper expressionHelper = new LambdaExpressionHelper();
 
-            return source
+            return dbContext
+                 .Set<TMainSet>()
+                 .Where(expressionHelper.GenerateWhereClause<TMainSet>(searchItems))
+                 //.Where(expressionHelper.TASTemplateWhereExpression<TMainSet>())
                  .Join(
                      dbContext
                          .Set<TFilterSet>()
